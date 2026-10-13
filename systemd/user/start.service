@@ -1,0 +1,10 @@
+[Unit]
+Description=Niri Wayland Session
+
+[Service]
+ExecStart=/usr/bin/niri-session
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

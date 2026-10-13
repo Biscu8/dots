@@ -32,14 +32,14 @@ input {
     touchpad {
         // off
         tap
-        // dwt
+        dwt
         // dwtp
         // drag false
         // drag-lock
         natural-scroll
         accel-speed 0
-        // accel-profile "flat"
-        // scroll-method "two-finger"
+        accel-profile "flat"
+        scroll-method "two-finger"
         // disabled-on-external-mouse
     }
 
@@ -63,11 +63,14 @@ input {
     }
 
     // Uncomment this to make the mouse warp to the center of newly focused windows.
-    // warp-mouse-to-focus
+    warp-mouse-to-focus mode="center-xy-always"
+	focus-follows-mouse
+	workspace-auto-back-and-forth
 
     // Focus windows and outputs automatically when moving the mouse into them.
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
     // focus-follows-mouse max-scroll-amount="0%"
+	disable-power-key-handling
 }
 
 // You can configure outputs by their name, which you can find
@@ -86,10 +89,10 @@ input {
     // for the resolution.
     // If the mode is omitted altogether or is invalid, niri will pick one automatically.
     // Run `niri msg outputs` while inside a niri instance to list all outputs and their modes.
-    mode "1920x1080@120.030"
+    mode "1920x1200@60"
 
     // You can use integer or fractional scale, for example use 1.5 for 150% scale.
-    scale 2
+    scale 0
 
     // Transform allows to rotate the output counter-clockwise, valid values are:
     // normal, 90, 180, 270, flipped, flipped-90, flipped-180 and flipped-270.
@@ -107,12 +110,17 @@ input {
     position x=1280 y=0
 }
 
+switch-events {
+	// lid-close {}
+	// lid-open {}
+}
+
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://niri-wm.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
-    gaps 16
+    gaps 8
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -120,7 +128,9 @@ layout {
     // - "always", the focused column will always be centered.
     // - "on-overflow", focusing a column will center it if it doesn't fit
     //   together with the previously focused column.
-    center-focused-column "never"
+    center-focused-column "on-overflow"
+    always-center-single-column
+	empty-workspace-above-first
 
     // You can customize the widths that "switch-preset-column-width" (Mod+R) toggles between.
     preset-column-widths {
@@ -136,12 +146,11 @@ layout {
     }
 
     // You can also customize the heights that "switch-preset-window-height" (Mod+Ctrl+Shift+R) toggles between.
-    // preset-window-heights { }
+    preset-window-heights { }
 
     // You can change the default width of the new windows.
-    default-column-width { proportion 0.5; }
     // If you leave the brackets empty, the windows themselves will decide their initial width.
-    // default-column-width {}
+    default-column-width {}
 
     // By default focus ring and border are rendered as a solid background rectangle
     // behind windows. That is, they will show up through semitransparent windows.
@@ -157,7 +166,7 @@ layout {
     // You can change how the focus ring looks.
     focus-ring {
         // Uncomment this line to disable the focus ring.
-        // off
+        off
 
         // How many logical pixels the ring extends out from the windows.
         width 4
@@ -216,7 +225,7 @@ layout {
     // You can enable drop shadows for windows.
     shadow {
         // Uncomment the next line to enable shadows.
-        // on
+        off
 
         // By default, the shadow draws only around its window, and not behind it.
         // Uncomment this setting to make the shadow draw behind its window.
@@ -256,11 +265,37 @@ layout {
     // Top and bottom struts will simply add outer gaps in addition to the area occupied by
     // layer-shell panels and regular gaps.
     struts {
-        // left 64
-        // right 64
-        // top 64
-        // bottom 64
+        left 8
+        right 8
+        // top 8
+        // bottom 8
     }
+}
+
+workspace "terminal"
+workspace "browser"
+window-rule {
+	match at-startup=true app-id="kitty"
+	open-on-workspace "terminal"
+}
+window-rule {
+	match at-startup=true app-id="firefox"
+	open-on-workspace "browser"
+}
+spawn-at-startup "kitty"
+spawn-at-startup "firefox"
+spawn-sh-at-startup "niri msg action focus-workspace 1"
+prefer-no-csd
+spawn-at-startup "quickshell"
+
+window-rule {
+	match is-active=false
+    opacity 0.90
+}
+
+window-rule {
+	match is-active=true
+    opacity 0.95
 }
 
 // Add lines like this to spawn processes at startup.
@@ -269,14 +304,21 @@ layout {
 // See the binds section below for more spawn examples.
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "waybar"
+// spawn-at-startup "waybar"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
-    // skip-at-startup
+    skip-at-startup
+}
+
+blur {
+	passes 3
+    offset 3.0
+	noise 0.02
+	saturation 1.5
 }
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
@@ -631,5 +673,5 @@ binds {
     // moving the mouse or pressing any other key.
     Mod+Shift+P { power-off-monitors; }
     Mod+B { spawn "firefox"; }
-    Mod+Space { spawn "wofi" "-d"; }
+    Mod+Space { spawn "wofi" "--show" "run"; }
 }
