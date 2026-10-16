@@ -20,6 +20,15 @@
 - discord
 - texlab
 - powertop
+- intel-gpu-tools
+- dbus-python
+- pyright
+
+## AUR
+- vmware-workstation
+
+## Build
+- paru
 
 # TODO
 - [ ] Lock screen
