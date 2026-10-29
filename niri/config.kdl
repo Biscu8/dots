@@ -134,7 +134,7 @@ switch-events {
 // https://niri-wm.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
-    gaps 8
+    gaps 0
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -221,8 +221,8 @@ layout {
         // If you enable the border, you probably want to disable the focus ring.
         off
 
-        width 4
-        active-color "#ffc87f"
+        width 1
+        active-color "#636C7D"
         inactive-color "#505050"
 
         // Color of the border around windows that request your attention.
@@ -279,10 +279,10 @@ layout {
     // Top and bottom struts will simply add outer gaps in addition to the area occupied by
     // layer-shell panels and regular gaps.
     struts {
-        left 8
-        right 8
-        // top 8
-        // bottom 8
+        left 0
+        right 0
+        top 0
+        bottom 0
     }
 }
 
@@ -310,6 +310,7 @@ window-rule {
 window-rule {
 	match is-active=true
     opacity 0.95
+    // opacity 1.0
 }
 
 // Add lines like this to spawn processes at startup.
@@ -359,6 +360,16 @@ animations {
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
     // slowdown 3.0
+
+	workspace-switch {
+		duration-ms 350
+		curve "ease-out-cubic"
+	}
+
+	overview-open-close {
+		duration-ms 350
+		curve "ease-out-cubic"
+	}
 }
 
 // Window rules let you adjust behavior for individual windows.
@@ -398,8 +409,8 @@ window-rule {
 
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
-/-window-rule {
-    geometry-corner-radius 12
+window-rule {
+    geometry-corner-radius 0
     clip-to-geometry true
 }
 
@@ -447,8 +458,8 @@ binds {
     // Example brightness key mappings for brightnessctl.
     // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
     // but you need to manually put each argument in separate "" quotes.
-    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+10%"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "10%-"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && qs ipc call brightness update"; }
+	XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && qs ipc call brightness update"; }
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
@@ -688,4 +699,6 @@ binds {
     Mod+Shift+P { power-off-monitors; }
     Mod+B { spawn "firefox"; }
     Mod+Space { spawn "wofi" "--show" "run"; }
+
+	Mod+N { spawn "qs" "ipc" "call" "shell" "toggle"; }
 }
