@@ -1,0 +1,62 @@
+{
+	"$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+	"version": 4,
+	"final_space": true,
+	"palette": {
+		"background": "transparent",
+		"surface": "#242836",
+		"border": "#636C7D",
+		"text": "#EBEEF3",
+		"muted": "#A6ABB6",
+		"cyan": "#59EEF5",
+		"pink": "#F263EE",
+		"yellow": "#FAF289",
+		"green": "#4AED67"
+	},
+	"blocks": [
+		{
+			"type": "prompt",
+			"alignment": "left",
+			"segments": [
+				{
+					"type": "path",
+					"style": "plain",
+					"foreground": "p:cyan",
+					"background": "transparent",
+					"template": " {{ .Path }} ",
+					"options": {
+						"style": "agnoster_short",
+						"max_depth": 3
+					}
+				},
+				{
+					"type": "git",
+					"style": "plain",
+					"foreground": "p:pink",
+					"background": "transparent",
+					"template": "{{ trimPrefix \"\" .HEAD | printf \" %s\" }}{{ if .Ahead }} ⇡{{ .Ahead }}{{ end }}{{ if .Behind }} ⇣{{ .Behind }}{{ end }}{{ if .Staging.Changed }} +{{ end }}{{ if .Working.Changed }} *{{ end }}",
+					"options": {
+						"branch_template": "{{ trunc 24 .Branch }}"
+					}
+				},
+				{
+					"type": "status",
+					"style": "plain",
+					"foreground": "p:yellow",
+					"background": "p:surface",
+					"template": "{{ if and .Executed .Error }}<#636C7D>│</> ✗ {{ .Code }} {{ end }}",
+					"options": {
+						"always_enabled": true
+					}
+				},
+				{
+					"type": "text",
+					"style": "plain",
+					"foreground": "p:cyan",
+					"background": "transparent",
+					"template": " ❯ "
+				}
+			]
+		}
+	]
+}

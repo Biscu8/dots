@@ -10,6 +10,7 @@
 - gcc
 - quickshell
 - tmux
+    - hardlink .tmux.conf to ~/.tmux.conf
 - zathura
 - zathura-pdf-mupdf
 - texlive
@@ -25,6 +26,20 @@
 - pyright
 - xwayland-satellite
 - clang
+- rubygems
+- ruby-erb
+- ruby-abbrev
+- oft-font-awesome
+- upower
+- ttf-ibmplex-mono-nerd
+- bluez
+- bluez-utils
+    Enable bluetooth.service
+- blueman
+- ripgrep
+- fd
+- lua-language-server
+- luarocks
 
 ## AUR
 - vmware-keymaps
@@ -36,6 +51,15 @@
     sudo modprobe -a vmw_vmci vmmon
     sudo systemctl enable --now vmware-networks
     ```
+- pwvucontrol
+- oh-my-posh
+    ```
+    eval "$(oh-my-posh init bash --config ~/.config/ohmyposh/poisson.omp.json)"
+    ```
+    in `.bashrc`
+
+### RubyGems
+- vimgolf
 
 ## Build
 - paru

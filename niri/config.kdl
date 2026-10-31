@@ -111,6 +111,7 @@ input {
 }
 
 output "DP-4" {
+	backdrop-color "#001100"
     mode "1920x1080@165.008"
     scale 1
     transform "normal"
@@ -134,7 +135,7 @@ switch-events {
 // https://niri-wm.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
-    gaps 0
+    gaps 16
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -219,14 +220,14 @@ layout {
     border {
         // The settings are the same as for the focus ring.
         // If you enable the border, you probably want to disable the focus ring.
-        off
+        on
 
-        width 1
+        width 2
         active-color "#636C7D"
-        inactive-color "#505050"
+        inactive-color "#3A4459"
 
         // Color of the border around windows that request your attention.
-        urgent-color "#9b0000"
+        urgent-color "#FAF289"
 
         // Gradients can use a few different interpolation color spaces.
         // For example, this is a pastel rainbow gradient via in="oklch longer hue".
@@ -372,6 +373,10 @@ animations {
 	}
 }
 
+overview {
+	backdrop-color "#191C23"
+}
+
 // Window rules let you adjust behavior for individual windows.
 // Find more information on the wiki:
 // https://niri-wm.github.io/niri/Configuration:-Window-Rules
@@ -410,7 +415,7 @@ window-rule {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 0
+    geometry-corner-radius 8
     clip-to-geometry true
 }
 
@@ -458,8 +463,8 @@ binds {
     // Example brightness key mappings for brightnessctl.
     // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
     // but you need to manually put each argument in separate "" quotes.
-    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && qs ipc call brightness update"; }
-	XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && qs ipc call brightness update"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && qs ipc call status brightnessChanged"; }
+	XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && qs ipc call status brightnessChanged"; }
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
@@ -699,6 +704,4 @@ binds {
     Mod+Shift+P { power-off-monitors; }
     Mod+B { spawn "firefox"; }
     Mod+Space { spawn "wofi" "--show" "run"; }
-
-	Mod+N { spawn "qs" "ipc" "call" "shell" "toggle"; }
 }
