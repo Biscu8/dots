@@ -137,6 +137,8 @@ layout {
     // Set gaps around windows in logical pixels.
     gaps 16
 
+	background-color "transparent"
+
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
     //   or right edge of the screen.
@@ -304,12 +306,12 @@ prefer-no-csd
 spawn-at-startup "quickshell"
 
 window-rule {
-	match is-active=false
+	match is-focused=false
     opacity 0.90
 }
 
 window-rule {
-	match is-active=true
+	match is-focused=true
     opacity 0.95
     // opacity 1.0
 }
@@ -331,7 +333,8 @@ hotkey-overlay {
 }
 
 blur {
-	passes 3
+	on
+	passes 1
     offset 3.0
 	noise 0.02
 	saturation 1.5
@@ -417,6 +420,9 @@ window-rule {
 window-rule {
     geometry-corner-radius 8
     clip-to-geometry true
+	background-effect {
+		blur true
+	}
 }
 
 binds {

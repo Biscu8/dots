@@ -1,292 +1,420 @@
 import Quickshell
+import Quickshell.Wayland
+import Quickshell.Services.Pam
 import Quickshell.Services.UPower
 import Quickshell.Services.Pipewire
 import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Effects
 
 import "./wallpaper"
 
+ShellRoot {
+	PanelWindow {
+		id: root
 
-PanelWindow {
-    id: root
+		aboveWindows: true
+		visible: false
 
-    aboveWindows: true
-    visible: false
-
-    anchors {
-        top: true
-        right: true
-    }
-
-    implicitWidth: 300
-    implicitHeight: 44
-
-    color: "transparent"
-
-    // --------------------------------------------------
-    // Status state
-    // --------------------------------------------------
-
-    property string statusText: ""
-
-    function showStatus(message) {
-        statusText = message
-        visible = true
-        hideTimer.restart()
-	}
-
-	function showUrgent(message) {
-		statusText = message;
-		visible = true;
-		hideTimer.interval = 12000;
-		text.color = "#F3FAF289";
-		text.font.family = "IBM Plex Sans Bold";
-		hideTimer.restart();
-	}
-
-    Timer {
-        id: hideTimer
-        interval: 6000
-        repeat: false
-
-		onTriggered: {
-			root.visible = false;
-			text.color = "#F3EBEEF3";
-			text.font.family = "IBM Plex Sans";
-			interval = 6000;
+		anchors {
+			top: true
+			right: true
 		}
-	}
 
-    // --------------------------------------------------
-    // Battery
-    // --------------------------------------------------
+		implicitWidth: 300
+		implicitHeight: 44
 
-    property int batteryReference: -1
+		color: "transparent"
 
-    function updateBattery() {
-        const battery = UPower.displayDevice
+		// --------------------------------------------------
+		// Status state
+		// --------------------------------------------------
 
-        if (!battery.ready)
-            return
+		property string statusText: ""
 
-        const current = Math.round(battery.percentage * 100)
-
-        // First reading establishes the baseline.
-        if (batteryReference < 0) {
-            batteryReference = current
-            return
-        }
-
-        // While charging, continuously update the baseline.
-        if (!UPower.onBattery) {
-            batteryReference = current
-            return
-        }
-
-        const drop = batteryReference - current
-
-        // Notify after every 10 percentage points lost.
-		if (drop >= 10) {
-			if (current <= 20) {
-				showUrgent("Battery low · " + current + " %");
-			} else {
-				showStatus("Battery -" + drop + " % · " + current + " %")
-			}
-            batteryReference = current
+		function showStatus(message) {
+			statusText = message
+			visible = true
+			hideTimer.restart()
 		}
-    }
 
-    Connections {
-        target: UPower.displayDevice
+		function showUrgent(message) {
+			statusText = message;
+			visible = true;
+			hideTimer.interval = 12000;
+			text.color = "#F3FAF289";
+			text.font.family = "IBM Plex Sans Bold";
+			hideTimer.restart();
+		}
 
-        function onReadyChanged() {
-            root.updateBattery()
-        }
+		Timer {
+			id: hideTimer
+			interval: 6000
+			repeat: false
 
-        function onPercentageChanged() {
-            root.updateBattery()
-        }
-    }
-
-    Connections {
-        target: UPower
-
-        function onOnBatteryChanged() {
-            root.batteryReference = -1
-            root.updateBattery()
-
-            root.showStatus(
-                UPower.onBattery ? "Running on battery" : "Power connected"
-            )
-        }
-    }
-
-    // --------------------------------------------------
-    // Audio
-    // --------------------------------------------------
-
-    property var audioSink: Pipewire.defaultAudioSink
-
-    property real lastVolume: -1
-    property var lastMuted: null
-
-    PwObjectTracker {
-        objects: [root.audioSink]
-    }
-
-    function syncAudioBaseline() {
-        if (!audioSink || !audioSink.ready || !audioSink.audio)
-            return
-
-        lastVolume = audioSink.audio.volume
-        lastMuted = audioSink.audio.muted
-    }
-
-    onAudioSinkChanged: {
-        lastVolume = -1
-        lastMuted = null
-        syncAudioBaseline()
-    }
-
-    Connections {
-        target: root.audioSink
-
-        function onReadyChanged() {
-            root.syncAudioBaseline()
-        }
-    }
-
-    Connections {
-        target: root.audioSink ? root.audioSink.audio : null
-
-        function onVolumeChanged() {
-            if (!root.audioSink || !root.audioSink.ready)
-                return
-
-            const current = root.audioSink.audio.volume
-
-            // Avoid notifying on initial synchronization.
-            if (root.lastVolume < 0) {
-                root.lastVolume = current
-                return
-            }
-
-            const previous = root.lastVolume
-            root.lastVolume = current
-
-            if (Math.abs(current - previous) < 0.005)
-                return
-
-            const direction = current > previous
-                ? "increased"
-                : "decreased"
-
-            root.showStatus(
-                "Volume " + direction + " · " +
-                Math.round(current * 100) + "%"
-            )
-        }
-
-        function onMutedChanged() {
-            if (!root.audioSink || !root.audioSink.ready)
-                return
-
-            const muted = root.audioSink.audio.muted
-
-            if (root.lastMuted === null) {
-                root.lastMuted = muted
-                return
-            }
-
-            if (muted === root.lastMuted)
-                return
-
-            root.lastMuted = muted
-
-            root.showStatus(muted ? "Audio muted" : "Audio unmuted")
-        }
-    }
-
-    // --------------------------------------------------
-    // Brightness
-    // --------------------------------------------------
-	Process {
-		id: brightnessProcess
-		running: false
-		// command: [ "sh", "-c", "brightnessctl -m" ]
-		command: [ "/usr/bin/brightnessctl", "-m" ]
-		stdout: StdioCollector {
-			onStreamFinished: {
-				const text = this.text.split(",");
-				root.showStatus("Brightness · " + text[3]);
+			onTriggered: {
+				root.visible = false;
+				text.color = "#F3EBEEF3";
+				text.font.family = "IBM Plex Sans";
+				interval = 6000;
 			}
+		}
+
+		// --------------------------------------------------
+		// Battery
+		// --------------------------------------------------
+
+		property int batteryReference: -1
+
+		function updateBattery() {
+			const battery = UPower.displayDevice
+
+			if (!battery.ready)
+				return
+
+			const current = Math.round(battery.percentage * 100)
+
+			// First reading establishes the baseline.
+			if (batteryReference < 0) {
+				batteryReference = current
+				return
+			}
+
+			// While charging, continuously update the baseline.
+			if (!UPower.onBattery) {
+				batteryReference = current
+				return
+			}
+
+			// Notify after every 10 percentage points lost.
+			if (current % 10 === 0) {
+				if (current <= 20) {
+					showUrgent("Battery low · " + current + " %");
+				} else {
+					showStatus("Battery · " + current + " %")
+				}
+				batteryReference = current
+			}
+		}
+
+		Connections {
+			target: UPower.displayDevice
+
+			function onReadyChanged() {
+				root.updateBattery()
+			}
+
+			function onPercentageChanged() {
+				root.updateBattery()
+			}
+		}
+
+		Connections {
+			target: UPower
+
+			function onOnBatteryChanged() {
+				root.batteryReference = -1
+				root.updateBattery()
+
+				root.showStatus(
+					UPower.onBattery ? "Running on battery" : "Power connected"
+				)
+			}
+		}
+
+		// --------------------------------------------------
+		// Audio
+		// --------------------------------------------------
+
+		property var audioSink: Pipewire.defaultAudioSink
+
+		property real lastVolume: -1
+		property var lastMuted: null
+
+		PwObjectTracker {
+			objects: [root.audioSink]
+		}
+
+		function syncAudioBaseline() {
+			if (!audioSink || !audioSink.ready || !audioSink.audio)
+				return
+
+			lastVolume = audioSink.audio.volume
+			lastMuted = audioSink.audio.muted
+		}
+
+		onAudioSinkChanged: {
+			lastVolume = -1
+			lastMuted = null
+			syncAudioBaseline()
+		}
+
+		Connections {
+			target: root.audioSink
+
+			function onReadyChanged() {
+				root.syncAudioBaseline()
+			}
+		}
+
+		Connections {
+			target: root.audioSink ? root.audioSink.audio : null
+
+			function onVolumeChanged() {
+				if (!root.audioSink || !root.audioSink.ready)
+					return
+
+				const current = root.audioSink.audio.volume
+
+				// Avoid notifying on initial synchronization.
+				if (root.lastVolume < 0) {
+					root.lastVolume = current
+					return
+				}
+
+				const previous = root.lastVolume
+				root.lastVolume = current
+
+				if (Math.abs(current - previous) < 0.005)
+					return
+
+				const direction = current > previous
+					? "increased"
+					: "decreased"
+
+				root.showStatus(
+					"Volume " + direction + " · " +
+					Math.round(current * 100) + "%"
+				)
+			}
+
+			function onMutedChanged() {
+				if (!root.audioSink || !root.audioSink.ready)
+					return
+
+				const muted = root.audioSink.audio.muted
+
+				if (root.lastMuted === null) {
+					root.lastMuted = muted
+					return
+				}
+
+				if (muted === root.lastMuted)
+					return
+
+				root.lastMuted = muted
+
+				root.showStatus(muted ? "Audio muted" : "Audio unmuted")
+			}
+		}
+
+		// --------------------------------------------------
+		// Brightness
+		// --------------------------------------------------
+		Process {
+			id: brightnessProcess
+			running: false
+			// command: [ "sh", "-c", "brightnessctl -m" ]
+			command: [ "/usr/bin/brightnessctl", "-m" ]
+			stdout: StdioCollector {
+				onStreamFinished: {
+					const text = this.text.split(",");
+					root.showStatus("Brightness · " + text[3]);
+				}
+			}
+		}
+
+		IpcHandler {
+			target: "status"
+
+			function brightnessChanged(): void {
+				brightnessProcess.running = true;
+			}
+		}
+
+		// --------------------------------------------------
+		// Time
+		// --------------------------------------------------
+
+		SystemClock {
+			id: clock
+
+			precision: SystemClock.Minutes
+
+			onMinutesChanged: {
+				if (clock.minutes % 15 === 0) {
+					root.showStatus(
+						"Time · " + Qt.formatDateTime(clock.date, "hh:mm")
+					)
+				}
+			}
+		}
+
+		// --------------------------------------------------
+		// Visuals
+		// --------------------------------------------------
+
+		Wallpaper { }
+
+		Rectangle {
+			id: widget
+
+			anchors.fill: parent
+
+			color: "#F3191C23"
+			border.color: "#636C7D"
+			border.width: 2
+			radius: 8
+
+			Text {
+				id: text
+				anchors.centerIn: parent
+
+				width: parent.width - 24
+
+				horizontalAlignment: Text.AlignHCenter
+				verticalAlignment: Text.AlignVCenter
+
+				color: "#F3EBEEF3"
+				text: root.statusText
+				font.pixelSize: 14
+				font.family: "IBM Plex Sans"
+
+				elide: Text.ElideRight
+			}
+		}
+
+		// The panel is passive: clicks pass through its visible area.
+		mask: Region {
+			item: widget
+			intersection: Intersection.Xor
 		}
 	}
 
 	IpcHandler {
-		target: "status"
+		target: "lock"
 
-		function brightnessChanged(): void {
-			brightnessProcess.running = true;
-        }
-    }
+		function toggle(): void {
+			lock.locked = !lock.locked;
+		}
+	}
 
-    // --------------------------------------------------
-    // Time
-    // --------------------------------------------------
+	WlSessionLock {
+		id: lock
+		locked: true
+		surface: Component {
+			WlSessionLockSurface {
+				Image {
+					id: wallpaper
+					anchors.fill: parent
+					source: "/home/Biscu1ts/Wallpapers/ina3.jpg"
+					fillMode: Image.PreserveAspectCrop
+					width: 1920
+					height: 1200
+					asynchronous: true
+					mipmap: true
+				}
 
-    SystemClock {
-        id: clock
+				Rectangle {
+					id: rec
+					anchors.centerIn: parent
+					property int padding: 64
+					width: col.width + padding
+					height: col.height + padding
+					color: "#F3191C23"
+					border.color: "#636C7D"
+					border.width: 2
+					radius: 8
+					Column {
+						id: col
+						anchors.centerIn: parent
+						spacing: 16
+						Text {
+							text: {
+								const day = parseInt(Qt.formatDateTime(clock.date, "d"));
+								let str = "";
+								switch(day) {
+									case 1: str = "st";
+									break;
+									case 2: str = "nd";
+									break;
+									case 3: str = "rd";
+									break;
+									default: str = "th"; 
+								}
+								const month = Qt.formatDateTime(clock.date, "dddd, MMMM ");
+								const year = Qt.formatDateTime(clock.date, " yyyy");
+								return month + day + str + year;
+							}
+							anchors.horizontalCenter: parent.horizontalCenter
+							font.pointSize: 40
+							font.family: "IBM Plex Sans"
+							color: "#F3EBEEF3"
+						}
+						Text {
+							text: Qt.formatDateTime(clock.date, "hh:mm")
+							anchors.horizontalCenter: parent.horizontalCenter
+							font.pointSize: 80
+							color: "#F3EBEEF3"
+							height: contentHeight + 16
+						}
+						Rectangle {
+							anchors.horizontalCenter: parent.horizontalCenter
+							width: 256
+							height: 64
+							border.color: "#636C7D"
+							border.width: 2
+							radius: 8
+							color: "#F3242836"
+							TextInput {
+								id: password
+								anchors.centerIn: parent
+								echoMode: TextInput.Password
+								color: "#F3EBEEF3"
+								width: 256 - 8
+								font.pointSize: 24
+								clip: true
+								onAccepted: {
+									authStatus.text = "";
+									if (!pam.start()) {
+										authStatus.text = "Could not start authentication";
+									}
+								}
+							}
+						}
+					}
+					Text {
+						id: authStatus
+						text: ""
+						anchors.horizontalCenter: parent.horizontalCenter
+						font.pointSize: 18
+						color: "#F3FAF289"
+						height: contentHeight + 16
+					}
+				}
+				PamContext {
+					id: pam
+					config: "quickshell"
 
-        precision: SystemClock.Minutes
+					onPamMessage: {
+						if (responseRequired) {
+							respond(password.text);
+							password.text = "";
+						}
+					}
 
-        onMinutesChanged: {
-            if (clock.minutes % 15 === 0) {
-                root.showStatus(
-                    "Time · " + Qt.formatDateTime(clock.date, "hh:mm")
-                )
-            }
-        }
-    }
-
-    // --------------------------------------------------
-    // Visuals
-    // --------------------------------------------------
-
-    Wallpaper { }
-
-    Rectangle {
-        id: widget
-
-        anchors.fill: parent
-
-        color: "#F3191C23"
-        border.color: "#636C7D"
-		border.width: 2
-		radius: 8
-
-		Text {
-			id: text
-            anchors.centerIn: parent
-
-            width: parent.width - 24
-
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-
-            color: "#F3EBEEF3"
-            text: root.statusText
-			font.pixelSize: 14
-			font.family: "IBM Plex Sans"
-
-            elide: Text.ElideRight
-        }
-    }
-
-    // The panel is passive: clicks pass through its visible area.
-    mask: Region {
-        item: widget
-        intersection: Intersection.Xor
-    }
+					onCompleted: result => {
+						if (result === PamResult.Success) {
+							lock.locked = false;
+						} else {
+							authStatus.text = "Authentication failed";
+							password.text = "";
+							password.forceActiveFocus();
+						}
+					}
+				}
+			}
+		}
+	}
 }
