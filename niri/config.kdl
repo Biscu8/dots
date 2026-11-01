@@ -126,7 +126,7 @@ output "DP-2" {
 }
 
 switch-events {
-	// lid-close {}
+	lid-close { spawn "qs" "ipc" "call" "lock" "showLock"; }
 	// lid-open {}
 }
 
@@ -469,8 +469,8 @@ binds {
     // Example brightness key mappings for brightnessctl.
     // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
     // but you need to manually put each argument in separate "" quotes.
-    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && qs ipc call status brightnessChanged"; }
-	XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && qs ipc call status brightnessChanged"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && qs ipc call brightness brightnessChanged"; }
+	XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && qs ipc call brightness brightnessChanged"; }
 
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
@@ -710,4 +710,6 @@ binds {
     Mod+Shift+P { power-off-monitors; }
     Mod+B { spawn "firefox"; }
     Mod+Space { spawn "wofi" "--show" "run"; }
+    Ctrl+Alt+L { spawn-sh "qs ipc call lock showLock"; }
+    Mod+N { spawn-sh "qs ipc call status toggle"; }
 }

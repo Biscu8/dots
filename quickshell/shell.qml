@@ -5,8 +5,7 @@ import Quickshell.Services.UPower
 import Quickshell.Services.Pipewire
 import Quickshell.Io
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Effects
+import QtQuick.Layouts
 
 import "./wallpaper"
 
@@ -22,8 +21,8 @@ ShellRoot {
 			right: true
 		}
 
-		implicitWidth: 300
-		implicitHeight: 44
+		implicitWidth: 384
+		implicitHeight: 64
 
 		color: "transparent"
 
@@ -35,13 +34,13 @@ ShellRoot {
 
 		function showStatus(message) {
 			statusText = message
-			visible = true
+			visible = true & !status.visible;
 			hideTimer.restart()
 		}
 
 		function showUrgent(message) {
 			statusText = message;
-			visible = true;
+			visible = true & !status.visible;
 			hideTimer.interval = 12000;
 			text.color = "#F3FAF289";
 			text.font.family = "IBM Plex Sans Bold";
@@ -89,7 +88,9 @@ ShellRoot {
 
 			// Notify after every 10 percentage points lost.
 			if (current % 10 === 0) {
-				if (current <= 20) {
+				if (status.visible) {
+					statusBat.text = "Battery · " + current + " %";
+				} else if (current <= 20) {
 					showUrgent("Battery low · " + current + " %");
 				} else {
 					showStatus("Battery · " + current + " %")
@@ -220,13 +221,17 @@ ShellRoot {
 			stdout: StdioCollector {
 				onStreamFinished: {
 					const text = this.text.split(",");
-					root.showStatus("Brightness · " + text[3]);
+					if (status.visible) {
+						display.text = "Brightness · " + text[3];
+					} else {
+						root.showStatus("Brightness · " + text[3]);
+					}
 				}
 			}
 		}
 
 		IpcHandler {
-			target: "status"
+			target: "brightness"
 
 			function brightnessChanged(): void {
 				brightnessProcess.running = true;
@@ -261,6 +266,7 @@ ShellRoot {
 			id: widget
 
 			anchors.fill: parent
+			anchors.margins: 8
 
 			color: "#F3191C23"
 			border.color: "#636C7D"
@@ -297,6 +303,9 @@ ShellRoot {
 
 		function toggle(): void {
 			lock.locked = !lock.locked;
+		}
+		function showLock(): void {
+			lock.locked = true;
 		}
 	}
 
@@ -361,7 +370,7 @@ ShellRoot {
 						}
 						Rectangle {
 							anchors.horizontalCenter: parent.horizontalCenter
-							width: 256
+							width: 384
 							height: 64
 							border.color: "#636C7D"
 							border.width: 2
@@ -372,9 +381,10 @@ ShellRoot {
 								anchors.centerIn: parent
 								echoMode: TextInput.Password
 								color: "#F3EBEEF3"
-								width: 256 - 8
+								// width: 384 - 8
 								font.pointSize: 24
 								clip: true
+								focus: true
 								onAccepted: {
 									authStatus.text = "";
 									if (!pam.start()) {
@@ -414,6 +424,96 @@ ShellRoot {
 						}
 					}
 				}
+			}
+		}
+	}
+
+	IpcHandler {
+		target: "status"
+		function toggle() {
+			status.visible = !status.visible;
+			root.visible = false;
+		}
+	}
+	PanelWindow {
+		id: status
+		visible: false
+		color: "transparent"
+
+		implicitWidth: content.implicitWidth + 64
+		implicitHeight: content.implicitHeight + 32
+		onVisibleChanged: {
+			if (visible) {
+				brightnessProcess.running = true;
+				root.updateBattery();
+			}
+		}
+
+		anchors {
+			top: true
+			right: true
+		}
+
+		Rectangle {
+			anchors.fill: parent
+			anchors.margins: 8
+
+			color: "#F3191C23"
+			border.color: "#636C7D"
+			border.width: 2
+			radius: 8
+			ColumnLayout {
+				id: content
+				anchors.centerIn: parent
+				spacing: 8
+				// time
+				Text {
+					Layout.alignment: Qt.AlignHCenter
+					text: Qt.formatDateTime(clock.date, "hh:mm")
+					color: "#F3EBEEF3"
+					font.pointSize: 40
+				}
+				// date
+				Text {
+					Layout.alignment: Qt.AlignHCenter
+					text: {
+						const day = parseInt(Qt.formatDateTime(clock.date, "d"));
+						let str = "";
+						switch(day) {
+							case 1: str = "st";
+							break;
+							case 2: str = "nd";
+							break;
+							case 3: str = "rd";
+							break;
+							default: str = "th"; 
+						}
+						const month = Qt.formatDateTime(clock.date, "dddd, MMMM ");
+						const year = Qt.formatDateTime(clock.date, " yyyy");
+						return month + day + str + year;
+					}
+					font.pointSize: 20
+					color: "#F3EBEEF3"
+				}
+				// cal
+				// battery
+				Text {
+					id: statusBat
+					Layout.alignment: Qt.AlignHCenter
+					text: "Battery · " + root.batteryReference + " %"
+					font.pointSize: 20
+					color: "#F3EBEEF3"
+				}
+				// display
+				Text {
+					id: display
+					Layout.alignment: Qt.AlignHCenter
+					text: "Brightness · 0%";
+					font.pointSize: 20
+					color: "#F3EBEEF3"
+				}
+				// sound
+				// bluetooth
 			}
 		}
 	}
