@@ -40,6 +40,8 @@
 - fd
 - lua-language-server
 - luarocks
+- poppler
+- imagemagick
 
 ## AUR
 - vmware-keymaps
