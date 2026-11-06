@@ -306,11 +306,13 @@ prefer-no-csd
 spawn-at-startup "quickshell"
 
 window-rule {
+	draw-border-with-background false
 	match is-focused=false
     opacity 0.90
 }
 
 window-rule {
+	draw-border-with-background false
 	match is-focused=true
     opacity 0.95
     // opacity 1.0

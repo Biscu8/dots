@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pam
 import Quickshell.Services.UPower
+import Quickshell.Networking
 import Quickshell.Services.Pipewire
 import Quickshell.Io
 import QtQuick
@@ -123,6 +124,57 @@ ShellRoot {
 				)
 			}
 		}
+
+
+		// Network
+		//
+
+		property var wifiDevice: {
+			const devices = Networking.devices.values;
+
+			for (let i = 0; i < devices.length; i++) {
+				if (devices[i].type === DeviceType.Wifi)
+				return devices[i];
+			}
+
+			return null;
+		}
+
+		function updateNetwork() {
+			const device = root.wifiDevice;
+
+			if (device === null || !device.connected)
+			return "No networks";
+
+			const networks = device.networks.values;
+
+			for (let i = 0; i < networks.length; i++) {
+				const network = networks[i];
+
+				if (network.connected) {
+					return network.name + " · "
+					+ Math.round(network.signalStrength * 100) + " %";
+				}
+			}
+
+			return "No networks";
+		}
+
+		function refreshNetwork() {
+			root.showStatus(root.updateNetwork());
+		}
+
+		// Listen for Wi-Fi connection/disconnection.
+		Connections {
+			target: root.wifiDevice
+
+			function onConnectedChanged() {
+				root.refreshNetwork();
+			}
+		}
+
+		// Initial status
+		Component.onCompleted: root.refreshNetwork()
 
 		// --------------------------------------------------
 		// Audio
@@ -500,7 +552,35 @@ ShellRoot {
 				Text {
 					id: statusBat
 					Layout.alignment: Qt.AlignHCenter
-					text: "Battery · " + root.batteryReference + " %"
+					text: "Battery · " + Math.round(UPower.displayDevice.percentage * 100) + " %"
+					font.pointSize: 20
+					color: "#F3EBEEF3"
+				}
+				// network
+				Text {
+					id: net
+					property var netw
+					Layout.alignment: Qt.AlignHCenter
+					text: {
+						if (Networking.devices === null || Networking.devices === undefined) {
+							return "No networks";
+						}
+						for (let i = 0; i < Networking.devices.values.length; i++) {
+							const device = Networking.devices.values[i];
+							if (device.connected) {
+								for (let j = 0; j < device.networks.values.length; j++) {
+									netw = device.networks.values[j];
+									if (netw === undefined || netw === null) {
+										continue
+									}
+									if (netw.connected) {
+										return netw.name + " · " + Math.round(netw.signalStrength * 100) + " %";
+									}
+								}
+							}
+						}
+						return "No networks";
+					}
 					font.pointSize: 20
 					color: "#F3EBEEF3"
 				}
