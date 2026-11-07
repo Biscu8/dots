@@ -427,6 +427,16 @@ window-rule {
 	}
 }
 
+layer-rule {
+	match namespace="wofi"
+	opacity 0.95
+    geometry-corner-radius 8
+	background-effect {
+		blur true
+	}
+
+}
+
 binds {
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
     // in the end. To find an XKB name for a particular key, you may use a program
@@ -646,7 +656,7 @@ binds {
     // maximize-window-to-edges doesn't: the window expands to the edges of the screen.
     // This bind corresponds to normal window maximizing,
     // e.g. by double-clicking on the titlebar.
-    Mod+M { maximize-window-to-edges; }
+    // Mod+M { maximize-window-to-edges; }
 
     // Expand the focused column to space not taken up by other fully visible columns.
     // Makes the column "fill the rest of the space".
@@ -711,7 +721,8 @@ binds {
     // moving the mouse or pressing any other key.
     Mod+Shift+P { power-off-monitors; }
     Mod+B { spawn "firefox"; }
-    Mod+Space { spawn "wofi" "--show" "run"; }
+    Mod+Space { spawn "wofi" "--show" "run" "-G" "-matching=fuzzy" "-i"; }
     Ctrl+Alt+L { spawn-sh "qs ipc call lock showLock"; }
     Mod+N { spawn-sh "qs ipc call status toggle"; }
+    Mod+M { spawn-sh "qs ipc call status showStatus"; }
 }

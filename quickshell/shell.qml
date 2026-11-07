@@ -32,16 +32,41 @@ ShellRoot {
 		// --------------------------------------------------
 
 		property string statusText: ""
+		property bool shown: false
 
 		function showStatus(message) {
-			statusText = message
-			visible = true & !status.visible;
-			hideTimer.restart()
+			statusText = message;
+
+			// Keep notifications hidden while the expanded status panel is open.
+			if (status.shown) {
+				shown = false;
+				hideTimer.stop();
+				rootDismissTimer.restart();
+				return;
+			}
+
+			rootDismissTimer.stop();
+			visible = true;
+			shown = true;
+			text.color = "#F3EBEEF3";
+			text.font.family = "IBM Plex Sans";
+			hideTimer.interval = 6000;
+			hideTimer.restart();
 		}
 
 		function showUrgent(message) {
 			statusText = message;
-			visible = true & !status.visible;
+
+			if (status.shown) {
+				shown = false;
+				hideTimer.stop();
+				rootDismissTimer.restart();
+				return;
+			}
+
+			rootDismissTimer.stop();
+			visible = true;
+			shown = true;
 			hideTimer.interval = 12000;
 			text.color = "#F3FAF289";
 			text.font.family = "IBM Plex Sans Bold";
@@ -54,10 +79,22 @@ ShellRoot {
 			repeat: false
 
 			onTriggered: {
-				root.visible = false;
+				root.shown = false;
+				rootDismissTimer.restart();
 				text.color = "#F3EBEEF3";
 				text.font.family = "IBM Plex Sans";
 				interval = 6000;
+			}
+		}
+
+		// Keep the window mapped until the 350 ms slide-out has finished.
+		Timer {
+			id: rootDismissTimer
+			interval: 350
+			repeat: false
+			onTriggered: {
+				if (!root.shown)
+					root.visible = false;
 			}
 		}
 
@@ -89,7 +126,7 @@ ShellRoot {
 
 			// Notify after every 10 percentage points lost.
 			if (current % 10 === 0) {
-				if (status.visible) {
+				if (status.shown) {
 					statusBat.text = "Battery · " + current + " %";
 				} else if (current <= 20) {
 					showUrgent("Battery low · " + current + " %");
@@ -320,6 +357,17 @@ ShellRoot {
 			anchors.fill: parent
 			anchors.margins: 8
 
+			// A restrained drop-in works well for a notification attached to the top edge.
+			transform: Translate {
+				y: root.shown ? 0 : -root.implicitHeight
+				Behavior on y {
+					NumberAnimation {
+						duration: 350
+						easing.type: Easing.OutCubic
+					}
+				}
+			}
+
 			color: "#F3191C23"
 			border.color: "#636C7D"
 			border.width: 2
@@ -341,6 +389,7 @@ ShellRoot {
 
 				elide: Text.ElideRight
 			}
+
 		}
 
 		// The panel is passive: clicks pass through its visible area.
@@ -483,21 +532,60 @@ ShellRoot {
 	IpcHandler {
 		target: "status"
 		function toggle() {
-			status.visible = !status.visible;
-			root.visible = false;
+			status.setShown(!status.shown);
+
+			// Close the small notification with the same slide transition.
+			root.hideTimer.stop();
+			root.shown = false;
+			rootDismissTimer.restart();
+		}
+		function showStatus() {
+			status.setShown(true);
+			hideStatusTimer.restart();
+		}
+	}
+	Timer {
+		id: hideStatusTimer
+		interval: 6000
+		repeat: false
+		onTriggered: {
+			status.setShown(false);
 		}
 	}
 	PanelWindow {
 		id: status
 		visible: false
+		property bool shown: false
 		color: "transparent"
 
 		implicitWidth: content.implicitWidth + 64
 		implicitHeight: content.implicitHeight + 32
-		onVisibleChanged: {
-			if (visible) {
+
+		function setShown(value) {
+			if (value) {
+				statusDismissTimer.stop();
+				visible = true;
+				shown = true;
+			} else if (shown) {
+				shown = false;
+				statusDismissTimer.restart();
+			}
+		}
+
+		onShownChanged: {
+			if (shown) {
 				brightnessProcess.running = true;
 				root.updateBattery();
+			}
+		}
+
+		Timer {
+			id: statusDismissTimer
+			interval: 350
+			repeat: false
+			onTriggered: {
+				if (!status.shown)
+					status.visible = false;
 			}
 		}
 
@@ -507,8 +595,20 @@ ShellRoot {
 		}
 
 		Rectangle {
+			id: statusWidget
 			anchors.fill: parent
 			anchors.margins: 8
+
+			// The larger panel travels a little farther, but uses the same timing curve.
+			transform: Translate {
+				y: status.shown ? 0 : -status.implicitHeight
+				Behavior on y {
+					NumberAnimation {
+						duration: 350
+						easing.type: Easing.OutCubic
+					}
+				}
+			}
 
 			color: "#F3191C23"
 			border.color: "#636C7D"

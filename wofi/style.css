@@ -1,0 +1,98 @@
+/* Main window */
+window {
+    margin: 0px;
+    border: 2px solid #636C7D;
+    border-radius: 8px;
+    background-color: #191C23;
+    font-family: "IBM Plex Sans";
+    font-size: 14px;
+}
+
+/* Main layout */
+#outer-box {
+    margin: 0px;
+    padding: 8px;
+    background-color: #191C23;
+    border: 2px solid #636C7D;
+    border-radius: 8px;
+}
+
+#input {
+    margin: 0px 0px 10px 0px;
+    padding: 10px 12px;
+    border: 1px solid #3A4459;
+    border-radius: 8px;
+    background-color: #242836;
+    color: #EBEEF3;
+    caret-color: #59EEF5;
+}
+
+#input:focus {
+    border: 1px solid #59EEF5;
+    outline: none;
+    box-shadow: none;
+}
+
+/* Application list */
+#scroll {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    background-color: transparent;
+}
+
+#inner-box {
+    margin: 0px;
+    padding: 0px;
+    background-color: transparent;
+}
+
+/* Individual entries */
+#entry {
+    margin: 0px;
+    padding: 8px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #EBEEF3;
+}
+
+#entry #text {
+    margin: 0px 8px;
+    color: #A6ABB6;
+}
+
+#entry #img {
+    margin-right: 8px;
+}
+
+/* Selected entry */
+#entry:selected {
+    border: 2px solid #3A4459;
+    background-color: #242836;
+    color: #59EEF5;
+}
+
+#entry:selected #text {
+    color: #59EEF5;
+    font-weight: bold;
+}
+
+#entry:selected #img {
+    opacity: 1;
+}
+
+/* Scrollbar */
+scrollbar {
+    background-color: transparent;
+}
+
+scrollbar slider {
+    min-width: 4px;
+    border-radius: 8px;
+    background-color: #3A4459;
+}
+
+scrollbar slider:hover {
+    background-color: #59EEF5;
+}
