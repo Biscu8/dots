@@ -1,9 +1,6 @@
 show=drun
 prompt=Search applications...
-width=960
-height=600
 location=center
-anchor=center
 layer=overlay
 
 allow_images=true

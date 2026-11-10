@@ -546,7 +546,7 @@ ShellRoot {
 	}
 	Timer {
 		id: hideStatusTimer
-		interval: 6000
+		interval: 3000
 		repeat: false
 		onTriggered: {
 			status.setShown(false);

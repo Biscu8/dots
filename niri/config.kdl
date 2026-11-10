@@ -154,9 +154,9 @@ layout {
         // Proportion sets the width as a fraction of the output width, taking gaps into account.
         // For example, you can perfectly fit four windows sized "proportion 0.25" on an output.
         // The default preset widths are 1/3, 1/2 and 2/3 of the output.
-        proportion 0.33333
+        proportion 0.4
         proportion 0.5
-        proportion 0.66667
+        proportion 0.6
 
         // Fixed sets the width in logical pixels exactly.
         // fixed 1920
@@ -296,11 +296,11 @@ window-rule {
 	open-on-workspace "terminal"
 }
 window-rule {
-	match at-startup=true app-id="firefox"
+	match at-startup=true app-id="librewolf"
 	open-on-workspace "browser"
 }
 spawn-at-startup "kitty"
-spawn-at-startup "firefox"
+spawn-at-startup "librewolf"
 spawn-sh-at-startup "niri msg action focus-workspace 1"
 prefer-no-csd
 spawn-at-startup "quickshell"
@@ -315,7 +315,6 @@ window-rule {
 	draw-border-with-background false
 	match is-focused=true
     opacity 0.95
-    // opacity 1.0
 }
 
 // Add lines like this to spawn processes at startup.
@@ -401,7 +400,7 @@ window-rule {
     // This app-id regular expression will work for both:
     // - host Firefox (app-id is "firefox")
     // - Flatpak Firefox (app-id is "org.mozilla.firefox")
-    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    match app-id=r#"librewolf$"# title="^Picture-in-Picture$"
     open-floating true
 }
 
@@ -720,8 +719,8 @@ binds {
     // Powers off the monitors. To turn them back on, do any input like
     // moving the mouse or pressing any other key.
     Mod+Shift+P { power-off-monitors; }
-    Mod+B { spawn "firefox"; }
-    Mod+Space { spawn "wofi" "--show" "run" "-G" "-matching=fuzzy" "-i"; }
+    Mod+B { spawn "librewolf"; }
+    Mod+Space { spawn "wofi" "--show" "drun"; }
     Ctrl+Alt+L { spawn-sh "qs ipc call lock showLock"; }
     Mod+N { spawn-sh "qs ipc call status toggle"; }
     Mod+M { spawn-sh "qs ipc call status showStatus"; }

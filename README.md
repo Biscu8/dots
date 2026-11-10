@@ -42,20 +42,25 @@
 - luarocks
 - poppler
 - imagemagick
+- tlp
+    ``` bash
+    sudo systemctl enable --now tlp.service
+    ```
+- librewolf
 
 ## AUR
 - vmware-keymaps
 - vmware-workstation
     Added `ibt=off` to `/etc/default/grub` in `GRUB_CMDLINE_LINUX_DEFAULT`
     Had to rebuild dkms
-    ```
+    ``` bash
     sudo dkms autoinstall
     sudo modprobe -a vmw_vmci vmmon
     sudo systemctl enable --now vmware-networks
     ```
 - pwvucontrol
 - oh-my-posh
-    ```
+    ``` bash
     eval "$(oh-my-posh init bash --config ~/.config/ohmyposh/poisson.omp.json)"
     ```
     in `.bashrc`
